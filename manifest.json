@@ -1,0 +1,36 @@
+{
+    "manifest_version":3,
+    "name":"Linkedin Slop Filter Version 2",
+    "version":"2.0",
+    "description":"Detects AI-written posts and collapses them into a short summary.",
+
+    "permissions":[
+        "storage",
+        "scripting",
+        "activeTab",
+        "tabs"
+    ],
+
+    "host_permissions":[
+        "https://www.linkedin.com/*"
+    ],
+
+    "background":{
+        "service_worker":"background/service-worker.js"
+    },
+
+    "content_scripts":[
+        {
+            "matches":["https://www.linkedin.com/*"],
+            "js":["utils/detector.js", "utils/storage.js", "content/content.js"],
+            "css":["content/content.css"],
+            "run_at":"document_idle"
+        }
+    ],
+
+    "action": {
+        "default_popup": "popup/popup.html"
+    },
+
+    "options_page":"options/options.html"
+}

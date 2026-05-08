@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>LinkedIn Slop Filter — Settings</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+        background: #f3f6f8;
+        color: #1d2226;
+        min-height: 100vh;
+        padding: 32px 20px 60px;
+      }
+
+      .page {
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      /* ── Header ── */
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .header-icon {
+        font-size: 28px;
+        line-height: 1;
+      }
+      .header-text h1 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1d2226;
+      }
+      .header-text p {
+        font-size: 12px;
+        color: #666;
+        margin-top: 2px;
+      }
+
+      /* ── Cards ── */
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+      }
+
+      .card-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: #0a66c2;
+        margin-bottom: 16px;
+      }
+
+      /* ── Fields ── */
+      .field { margin-bottom: 16px; }
+      .field:last-child { margin-bottom: 0; }
+
+      label {
+        display: block;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 6px;
+        color: #1d2226;
+      }
+
+      .hint {
+        font-size: 11px;
+        color: #888;
+        margin-top: 5px;
+        line-height: 1.4;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      select {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #1d2226;
+        background: #fafafa;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        outline: none;
+      }
+
+      input[type="text"]:focus,
+      input[type="password"]:focus,
+      select:focus {
+        border-color: #0a66c2;
+        box-shadow: 0 0 0 3px rgba(10,102,194,0.12);
+        background: #fff;
+      }
+
+      /* ── Ollama field toggle ── */
+      #ollamaField { display: none; }
+
+      /* ── Slider ── */
+      .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      input[type="range"] {
+        flex: 1;
+        accent-color: #0a66c2;
+        cursor: pointer;
+      }
+
+      .slider-value {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0a66c2;
+        min-width: 44px;
+        text-align: right;
+      }
+
+      .range-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 4px;
+      }
+
+      /* ── Tone chips ── */
+      .tone-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tone-chips input[type="radio"] { display: none; }
+
+      .tone-chips label {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 13px;
+        border: 1.5px solid #ccc;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: #444;
+        background: #fafafa;
+        transition: all 0.15s;
+        margin: 0;
+      }
+
+      .tone-chips input[type="radio"]:checked + label {
+        border-color: #0a66c2;
+        background: #e8f0fe;
+        color: #0a66c2;
+      }
+
+      .tone-chips label:hover {
+        border-color: #0a66c2;
+        color: #0a66c2;
+      }
+
+      /* ── Buttons ── */
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      #saveBtn {
+        padding: 10px 22px;
+        background: #0a66c2;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      #saveBtn:hover { background: #004182; }
+
+      #clearCacheBtn {
+        padding: 10px 16px;
+        background: none;
+        color: #666;
+        border: 1.5px solid #ccc;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
+      }
+
+      #clearCacheBtn:hover { border-color: #999; color: #333; }
+
+      #status {
+        font-size: 13px;
+        color: #2e7d32;
+        font-weight: 500;
+        min-height: 18px;
+        margin-left: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+
+      <div class="header">
+        <div class="header-icon">🤖</div>
+        <div class="header-text">
+          <h1>LinkedIn Slop Filter</h1>
+          <p>Configure detection sensitivity, AI provider, and summary style</p>
+        </div>
+      </div>
+
+      <!-- AI Provider -->
+      <div class="card">
+        <div class="card-title">AI Provider</div>
+
+        <div class="field">
+          <label for="provider">Provider</label>
+          <select id="provider">
+            <option value="groq">Groq (recommended — free &amp; fast)</option>
+            <option value="ollama">Ollama (local)</option>
+            <option value="openai-compatible">OpenAI-compatible</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="apiKey">API Key</label>
+          <input type="password" id="apiKey" placeholder="Your Groq or OpenAI-compatible key" />
+          <div class="hint">Not needed for Ollama. Never sent anywhere except the provider you choose.</div>
+        </div>
+
+        <div class="field" id="ollamaField">
+          <label for="ollamaUrl">Ollama URL</label>
+          <input type="text" id="ollamaUrl" placeholder="http://localhost:11434" />
+          <div class="hint">The local address Ollama is running on.</div>
+        </div>
+
+        <div class="field">
+          <label for="model">Model <span style="font-weight:400;color:#888">(optional)</span></label>
+          <input type="text" id="model" placeholder="Leave blank for default" />
+          <div class="hint">Groq default: llama-3.1-8b-instant &nbsp;·&nbsp; Ollama default: llama3</div>
+        </div>
+      </div>
+
+      <!-- Detection -->
+      <div class="card">
+        <div class="card-title">Detection</div>
+
+        <div class="field">
+          <label for="threshold">Sensitivity threshold</label>
+          <div class="slider-row">
+            <input type="range" id="threshold" min="10" max="90" step="5" />
+            <span class="slider-value"><span id="thresholdValue">30</span>/100</span>
+          </div>
+          <div class="range-labels">
+            <span>← Flag more posts</span>
+            <span>Flag fewer posts →</span>
+          </div>
+          <div class="hint">Posts scoring above this are collapsed and summarised.</div>
+        </div>
+      </div>
+
+      <!-- Summary Style -->
+      <div class="card">
+        <div class="card-title">Summary Style</div>
+
+        <div class="field">
+          <label for="summaryLength">Length</label>
+          <select id="summaryLength">
+            <option value="very-short">Very short (1–2 lines)</option>
+            <option value="short">Short (2–3 lines)</option>
+            <option value="medium">Medium (4–5 lines)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tone</label>
+          <div class="tone-chips">
+            <input type="radio" name="tone" id="tone-professional" value="professional" />
+            <label for="tone-professional">💼 Professional</label>
+
+            <input type="radio" name="tone" id="tone-blunt" value="blunt" />
+            <label for="tone-blunt">🔪 Blunt</label>
+
+            <input type="radio" name="tone" id="tone-sarcastic" value="sarcastic" />
+            <label for="tone-sarcastic">🙄 Sarcastic</label>
+
+            <input type="radio" name="tone" id="tone-casual" value="casual" />
+            <label for="tone-casual">👋 Casual</label>
+
+            <input type="radio" name="tone" id="tone-gen-z" value="gen-z" />
+            <label for="tone-gen-z">✨ Gen Z</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <div class="actions">
+          <button id="saveBtn">Save settings</button>
+          <button id="clearCacheBtn">Clear cache</button>
+          <span id="status"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <script src="../utils/storage.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
