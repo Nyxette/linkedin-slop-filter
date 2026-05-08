@@ -3,11 +3,11 @@
 A Chrome extension that detects AI-generated LinkedIn posts and collapses them into a short summary.
 
 ## Features
--Scores posts locally using a very simple heuristic detector to save on API cost and speed.
--Collapses posts that score over threshold and replaces them with a summary
--Batches multiple posts at once to save on rate limits (so dont scroll too too fast or you might miss some)
--Supports Groq (default), Ollam, and other OpenAI compatible providers
--Threshold, summary tone, length all customizable to your needs with a very simple settings menu
+- Scores posts locally using a very simple heuristic detector to save on API cost and speed.
+- Collapses posts that score over threshold and replaces them with a summary
+- Batches multiple posts at once to save on rate limits (so dont scroll too too fast or you might miss some)
+- Supports Groq (default), Ollam, and other OpenAI compatible providers
+- Threshold, summary tone, length all customizable to your needs with a very simple settings menu
 
 ## Setup
 1. Clone this repo
