@@ -127,6 +127,9 @@
         font-weight: 700;
         color: #1d2226;
       }
+      .info-pill:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
 
       /* ── Settings link ── */
       .settings-btn {
@@ -164,35 +167,55 @@
     </div>
 
     <div class="body">
-      <div class="toggle-row">
-        <span class="toggle-label">
-          <span class="status-dot" id="statusDot"></span>
-          Filter active
-        </span>
-        <label class="toggle">
-          <input type="checkbox" id="enabledToggle" />
-          <span class="slider"></span>
-        </label>
-      </div>
 
-      <div class="info-grid">
-        <div class="info-pill">
-          <div class="pill-label">Threshold</div>
-          <div class="pill-value" id="pillThreshold">—</div>
+        <div class="toggle-row">
+          <span class="toggle-label">
+            <span class="status-dot" id="lengthDot"></span>
+            Length Filter
+          </span>
+          <label class="toggle">
+            <input type="checkbox" id="detectLength" />
+            <span class="slider"></span>
+          </label>
         </div>
-        <div class="info-pill">
-          <div class="pill-label">Provider</div>
-          <div class="pill-value" id="pillProvider">—</div>
+
+        <div class="info-grid">
+            <div class="info-pill">
+              <div class="pill-label">Min Words</div>
+            <div class="pill-value" id="pillLengthThreshold">—</div>
+          </div>
         </div>
-        <div class="info-pill">
-          <div class="pill-label">Length</div>
-          <div class="pill-value" id="pillLength">—</div>
+
+        <div class="toggle-row">
+          <span class="toggle-label">
+            <span class="status-dot" id="statusDot"></span>
+            Filter active
+          </span>
+          <label class="toggle">
+            <input type="checkbox" id="enabledToggle" />
+            <span class="slider"></span>
+          </label>
         </div>
-        <div class="info-pill">
-          <div class="pill-label">Tone</div>
-          <div class="pill-value" id="pillTone">—</div>
+
+
+        <div class="info-grid">
+          <div class="info-pill">
+            <div class="pill-label">AI Threshold</div>
+            <div class="pill-value" id="pillThreshold">—</div>
+          </div>
+          <div class="info-pill">
+            <div class="pill-label">Provider</div>
+            <div class="pill-value" id="pillProvider">—</div>
+          </div>
+          <div class="info-pill">
+            <div class="pill-label">Length</div>
+            <div class="pill-value" id="pillLength">—</div>
+          </div>
+          <div class="info-pill">
+            <div class="pill-label">Tone</div>
+            <div class="pill-value" id="pillTone">—</div>
+          </div>
         </div>
-      </div>
 
       <button class="settings-btn" id="optionsLink">
         ⚙️ Open settings

@@ -27,7 +27,7 @@ function buildPrompt(posts, settings) {
   const toneMap = {
     "professional": "Write in a clear, neutral, professional tone.",
     "blunt":        "Write in a blunt, no-nonsense tone. No softening. Be brutal.",
-    "sarcastic":    "Write with dry sarcasm. Make it clear the post is LinkedIn fluff dressed up as wisdom.",
+    "sarcastic":    "Write with dry sarcasm. Make it clear the post is LinkedIn slop dressed up as wisdom.",
     "casual":       "Write casually, like you're telling a friend what the post said.",
     "gen-z":        "Write in Gen Z internet slang. Be brief, use expressions like 'basically', 'lowkey', 'fr'.",
   };

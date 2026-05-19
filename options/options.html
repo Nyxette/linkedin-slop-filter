@@ -211,6 +211,33 @@
         min-height: 18px;
         margin-left: auto;
       }
+
+      .toggle {
+          position: relative;
+          width: 40px;
+          height: 22px;
+      }
+      .toggle input { opacity: 0; width: 0; height: 0; }
+      .slider {
+          position: absolute;
+          inset: 0;
+          background: #ccc;
+          border-radius: 22px;
+          cursor: pointer;
+          transition: background 0.2s;
+      }
+      .slider::before {
+          content: "";
+          position: absolute;
+          width: 16px; height: 16px;
+          left: 3px; top: 3px;
+          background: white;
+          border-radius: 50%;
+          transition: transform 0.2s;
+      }
+      input:checked + .slider { background: #0a66c2; }
+      input:checked + .slider::before { transform: translateX(18px); }
+
     </style>
   </head>
 
@@ -225,8 +252,46 @@
         </div>
       </div>
 
+      
+        <div class="card">
+          <div class="card-title">Word Length Filter</div>
+
+          <div class="field">
+            <label for ="detectLength">Length Filter</label>
+            <label class="toggle">
+              <input type="checkbox" id="detectLength"/>
+              <span class="slider"></span>
+            </label>
+            <div class="hint">This only checks the length of the post</div>
+          </div>
+
+          <div class="field">
+            <label for="lengthThreshold">Post Length Threshold</label>
+            <select id="lengthThreshold">
+              <option value="0-all">All Posts (⚠️ RESOURCE HUNGRY)</option>
+              <option value="50-very-short ">> 50 Words</option>
+              <option value="75-short ">> 75 Words</option>
+              <option value="100-medium ">> 100 Words</option>
+              <option value="200-long ">> 200 Words</option>
+            </select>
+          </div>
+        </div>
+
+
+
+
       <!-- AI Provider -->
       <div class="card">
+        
+          <div class="field">
+            <label for ="enabled">AI Filter</label>
+            <label class="toggle">
+              <input type="checkbox" id="enabled"/>
+              <span class="slider"></span>
+            </label>
+            <div class="hint">This is to activate the AI filter</div>
+          </div>
+
         <div class="card-title">AI Provider</div>
 
         <div class="field">
@@ -292,22 +357,24 @@
           <label>Tone</label>
           <div class="tone-chips">
             <input type="radio" name="tone" id="tone-professional" value="professional" />
-            <label for="tone-professional">💼 Professional</label>
+            <label for="tone-professional">Professional</label>
 
             <input type="radio" name="tone" id="tone-blunt" value="blunt" />
-            <label for="tone-blunt">🔪 Blunt</label>
+            <label for="tone-blunt">Blunt</label>
 
             <input type="radio" name="tone" id="tone-sarcastic" value="sarcastic" />
-            <label for="tone-sarcastic">🙄 Sarcastic</label>
+            <label for="tone-sarcastic">Sarcastic</label>
 
             <input type="radio" name="tone" id="tone-casual" value="casual" />
-            <label for="tone-casual">👋 Casual</label>
+            <label for="tone-casual">Casual</label>
 
             <input type="radio" name="tone" id="tone-gen-z" value="gen-z" />
-            <label for="tone-gen-z">✨ Gen Z</label>
+            <label for="tone-gen-z">Gen Z</label>
           </div>
         </div>
       </div>
+
+  
 
       <!-- Actions -->
       <div class="card">

@@ -1,13 +1,19 @@
 const DEFAULT_SETTINGS = {
-  enabled: true,
+
+  detectLength:true,
+  lengthThreshold:"100-medium",
+
+  enabled: true, //detectAI
   threshold: 30,
   provider: "groq",
   apiKey: "",
   ollamaUrl: "http://localhost:11434",
   model: "",
   summaryLength: "short",
-  tone: "professional",   // ← add this
+  tone: "professional",
 };
+
+
 
 function getSettings() {
   return new Promise((resolve) => {
@@ -27,7 +33,14 @@ function getCachedSummary(text) {
   const key = "cache_" + text.slice(0, 100);
   return new Promise((resolve) => {
     chrome.storage.local.get(key, (result) => {
-      resolve(result[key] || null);
+      const entry = result[key];
+      if (!entry) return resolve(null);
+      const age = Date.now() - entry.ts;
+      if (age > 24 * 60 * 60 * 1000) {
+        chrome.storage.local.remove(key);
+        return resolve(null);
+      }
+      resolve(entry.summary);
     });
   });
 }
@@ -35,7 +48,7 @@ function getCachedSummary(text) {
 function setCachedSummary(text, summary) {
   const key = "cache_" + text.slice(0, 100);
   return new Promise((resolve) => {
-    chrome.storage.local.set({ [key]: summary }, resolve);
+    chrome.storage.local.set({ [key]: { summary, ts: Date.now() } }, resolve);
   });
 }
 

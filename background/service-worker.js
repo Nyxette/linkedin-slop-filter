@@ -40,33 +40,52 @@ function addToQueue(text){
     });
 }
 
-async function flushQueue(){
-    if (queue.length===0) return;
 
-    const batch=queue.splice(0,queue.length);
-    const settings =await getSettings();
-    if(!settings.apiKey && settings.provider !=="ollama"){
-        for (const item of batch){
-            item.resolve("No API Key configured. Add one in the extension setings please");
-        }
-        return;
+async function flushQueue() {
+  if (queue.length === 0) return;
+
+  const batch = queue.splice(0, queue.length);
+  const settings = await getSettings();
+
+  if (!settings.apiKey && settings.provider !== "ollama") {
+    for (const item of batch) {
+      item.resolve("No API Key configured. Add one in the extension settings.");
+    }
+    return;
+  }
+
+  try {
+    const texts = batch.map(item => item.text);
+    const summaries = await summariseBatch(texts, settings);
+
+    for (let i = 0; i < batch.length; i++) {
+      const summary = summaries[i] || "Summary unavailable.";
+      await setCachedSummary(batch[i].text, summary);
+      batch[i].resolve(summary);
+    }
+  } catch (error) {
+    // ── Rate limit detection ──
+    if (error.message.includes("429")) {
+      notifyRateLimit(settings.provider);
+      for (const item of batch) {
+        item.resolve("Rate limited — summaries paused. Switch provider in settings.");
+      }
+      return;
     }
 
-    try{
-        const texts = batch.map(item=>item.text);
-        const summaries=await summariseBatch(texts,settings);
-
-        for (let i=0;i<batch.length;i++){
-            const summary = summaries[i] || "Summary Unavailable.";
-
-            await setCachedSummary(batch[i].text,summary);
-            
-            batch[i].resolve(summary);
-        }
-    }catch (error) {
-        console.error("Batch summarisation failed:", error.message, "| Stack:", error.stack);
-        for (const item of batch) {
-            item.resolve(`Summary failed: ${error.message}`);
-        }
+    for (const item of batch) {
+      item.resolve(`Summary failed: ${error.message}`);
+    }
+  }
 }
+
+function notifyRateLimit(provider) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: "RATE_LIMITED",
+        provider,
+      });
+    }
+  });
 }

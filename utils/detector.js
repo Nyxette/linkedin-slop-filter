@@ -1,3 +1,8 @@
+function checkLength(text,minWords){
+    wordCount=text.trim().split(/\s+/).length;
+    return wordCount >=minWords;
+}
+
 function scorePost(text) {
   let score = 0;
 
@@ -146,7 +151,7 @@ function checkBulletLists(text) {
   );
 
   if (bulletLines.length >= 5) return 20;
-  if (bulletLines.length >= 3) return 12;
+  if (bulletLines.length >= 3) return 15;
   return 0;
 }
 

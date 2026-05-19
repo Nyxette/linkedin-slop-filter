@@ -7,6 +7,10 @@ const pillProvider  = document.getElementById("pillProvider");
 const pillLength    = document.getElementById("pillLength");
 const pillTone      = document.getElementById("pillTone");
 
+const detectLength  = document.getElementById("detectLength");
+const lengthThreshold=document.getElementById("pillLengthThreshold");
+
+
 const lengthLabels = {
   "very-short": "Very short",
   "short":      "Short",
@@ -26,6 +30,9 @@ getSettings().then((s) => {
   toggle.checked = s.enabled !== false;
   updateDot(s.enabled !== false);
 
+  detectLength.checked = s.detectLength !==false;
+  lengthThreshold.textContent=s.lengthThreshold + "chars"; 
+
   pillThreshold.textContent = s.threshold + "/100";
   pillProvider.textContent  = s.provider === "openai-compatible" ? "OpenAI" : s.provider.charAt(0).toUpperCase() + s.provider.slice(1);
   pillLength.textContent    = lengthLabels[s.summaryLength] || s.summaryLength;
@@ -36,7 +43,7 @@ function updateDot(enabled) {
   statusDot.classList.toggle("off", !enabled);
 }
 
-// Toggle
+// Toggle for ai detector
 toggle.addEventListener("change", () => {
   const enabled = toggle.checked;
   chrome.storage.sync.set({ enabled });
@@ -45,6 +52,20 @@ toggle.addEventListener("change", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.id) {
       chrome.tabs.sendMessage(tabs[0].id, { type: "SET_ENABLED", enabled }).catch(() => {});
+    }
+  });
+});
+
+//toggle for length detector
+detectLength.addEventListener("change", () => {
+  chrome.storage.sync.set({ detectLength: detectLength.checked });
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: "SET_DETECT_LENGTH",
+        detectLength: detectLength.checked
+      }).catch(() => {});
     }
   });
 });

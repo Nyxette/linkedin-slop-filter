@@ -3,6 +3,8 @@ console.log("✅ SLF content script loaded");
 let isEnabled = true;
 let cachedThreshold = 30;
 let feedObserver = null;
+let isDetectLength = false;
+let lengthMin      = 100;
 
 // ─── CONTEXT INVALIDATION GUARD ───────────────────────────────────────────────
 
@@ -30,12 +32,21 @@ chrome.storage.onChanged.addListener((changes) => {
     isEnabled = changes.enabled.newValue;
     console.log("SLF: enabled updated to", isEnabled);
   }
+  if (changes.detectLength) {
+    isDetectLength = changes.detectLength.newValue;
+  }
 });
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "SET_ENABLED") {
+    console.log(`SLF: ${wordCount} words | tooLong: ${tooLong} (min: ${lengthMin}) | aiDetected: ${aiDetected} (score: ${score})`);
     isEnabled = message.enabled;
   }
+  if (message.type === "SET_DETECT_LENGTH") {
+    isDetectLength = message.detectLength;
+  }
+  if (message.type === "RATE_LIMITED")      showRateLimitToast(message.provider);
+
 });
 
 init();
@@ -46,8 +57,12 @@ init();
 
 async function init() {
   const s = await getSettings();
+  isDetectLength = s.detectLength !== false;
+  lengthMin      = parseInt(s.lengthThreshold?.split("-")[0]) || 0;
   isEnabled = s.enabled;
   cachedThreshold = s.threshold;
+
+
   console.log("SLF: settings loaded →", { threshold: cachedThreshold, enabled: isEnabled });
 
   const waitForFeed = setInterval(() => {
@@ -98,30 +113,35 @@ const processedElements = new WeakSet();
 const processedTexts = new Set();
 
 function processPost(postEl) {
-  if (!isEnabled) return;
+
+  if (!isEnabled && !isDetectLength) return;
   if (processedElements.has(postEl)) return;
   processedElements.add(postEl);
 
   const textEl = postEl.querySelector("[data-testid='expandable-text-box']");
   if (!textEl) return;
 
-  const text = textEl.innerText.trim();
-  if (text.length < 100) return;
-
   const textKey = text.slice(0, 120);
   if (processedTexts.has(textKey)) return;
   processedTexts.add(textKey);
 
-  const score = scorePost(text);
-  console.log("SLF score:", score, "| threshold:", cachedThreshold, "| text:", text.slice(0, 60));
+  const wordCount = text.trim().split(/\s+/).length;
+  const tooLong   = isDetectLength && checkLength(text,lengthMin);
+  const score     = isEnabled ? scorePost(text) : 0;
+  const aiDetected= isEnabled && score >= cachedThreshold;
 
-  if (score >= cachedThreshold) {
-    collapsePost(postEl, text, score);
-  }
+  console.log(`SLF: ${wordCount} words | tooLong: ${tooLong} (min: ${lengthMin}) | aiDetected: ${aiDetected} (score: ${score})`);
+
+  if (!tooLong && !aiDetected) return;
+
+  console.log("SLF score:", score, "| tooLong:", tooLong, "| aiDetected:", aiDetected);
+  collapsePost(postEl, text, score, aiDetected, tooLong, wordCount);
+
 }
 
 // ─── COLLAPSE POST ────────────────────────────────────────────────────────────
-function collapsePost(postEl, text, score) {
+function collapsePost(postEl, text, score, aiDetected, tooLong, wordCount) {
+
   const originalContent = postEl.querySelector("[data-testid='expandable-text-box']");
   if (!originalContent) return;
   if (!chrome.runtime?.id) return;
@@ -132,7 +152,7 @@ function collapsePost(postEl, text, score) {
   originalContent.style.height = "0";
   originalContent.style.overflow = "hidden";
 
-  const card = buildSummaryCard(score);
+  const card = buildSummaryCard(score, aiDetected, tooLong, wordCount);
   originalContent.parentNode.insertBefore(card, originalContent);
 
   try {
@@ -163,14 +183,28 @@ function handleMessageError(card, originalContent) {
 
 // ─── CARD UI ──────────────────────────────────────────────────────────────────
 
-function buildSummaryCard(score) {
+function buildSummaryCard(score, aiDetected, tooLong, wordCount) {
+  let headerHTML="";
+if (aiDetected && tooLong) {
+  headerHTML = `
+    <span class="slf-badge"> AI content detected</span>
+    <span class="slf-score">${score}/100</span>
+    <span class="slf-divider">·</span>
+    <span class="slf-badge">Word Count: ${wordCount} words</span>
+  `;
+} else if (aiDetected) {
+  headerHTML = `
+    <span class="slf-badge"> AI content detected</span>
+    <span class="slf-score">${score}/100</span>
+  `;
+} else {
+  headerHTML = `<span class="slf-badge"> ${wordCount} words</span>`;
+}
+
   const card = document.createElement("div");
   card.className = "slf-card";
   card.innerHTML = `
-    <div class="slf-header">
-      <span class="slf-badge">🤖 AI Slop Detected</span>
-      <span class="slf-score">${score}/100</span>
-    </div>
+    <div class="slf-header">${headerHTML}</div>
     <div class="slf-summary slf-loading">Summarising…</div>
     <button class="slf-show-btn" style="display:none">↩ Show original post</button>
   `;
@@ -187,12 +221,21 @@ function updateCardWithSummary(card, summary, originalContent) {
   showBtn.style.display = "inline-block";
 
   showBtn.addEventListener("click", () => {
-    // Restore the wrapper
-    originalContent.style.visibility = "";
-    originalContent.style.height = "";
-    originalContent.style.overflow = "";
-    card.remove();
+    const isHidden = originalContent.style.visibility === "hidden";
 
+    if (isHidden) {
+      // Show original below the card
+      originalContent.style.visibility = "";
+      originalContent.style.height = "";
+      originalContent.style.overflow = "";
+      showBtn.textContent = "↑ Collapse post";
+    } else {
+      // Hide it again
+      originalContent.style.visibility = "hidden";
+      originalContent.style.height = "0";
+      originalContent.style.overflow = "hidden";
+      showBtn.textContent = "↩ Show original post";
+    }
     // Auto-click LinkedIn's "...more" to expand the full post
     setTimeout(() => {
       const seeMore = originalContent.querySelector("button[aria-label*='see more']") ||
@@ -201,4 +244,25 @@ function updateCardWithSummary(card, summary, originalContent) {
       if (seeMore) seeMore.click();
     }, 50);
   });
+}
+
+
+
+function showRateLimitToast(provider) {
+  // Don't stack duplicates
+  if (document.getElementById("slf-toast")) return;
+
+  const toast = document.createElement("div");
+  toast.id = "slf-toast";
+  toast.innerHTML = `
+    <div class="slf-toast-title">⚠️ Rate limit hit — ${provider}</div>
+    <div class="slf-toast-body">Summaries paused. Switch provider in settings.</div>
+    <button class="slf-toast-close">✕</button>
+  `;
+  document.body.appendChild(toast);
+
+  toast.querySelector(".slf-toast-close").addEventListener("click", () => toast.remove());
+
+  // Auto-dismiss after 8 seconds
+  setTimeout(() => toast?.remove(), 8000);
 }

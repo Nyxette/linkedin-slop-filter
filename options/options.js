@@ -11,6 +11,11 @@ const saveBtn      = document.getElementById("saveBtn");
 const clearBtn     = document.getElementById("clearCacheBtn");
 const statusEl     = document.getElementById("status");
 
+const enabledEl    = document.getElementById("enabled");
+
+const lengthThreshold = document.getElementById("lengthThreshold");
+const detectLengthEl = document.getElementById("detectLength");
+
 // tone is a radio group, not a single element
 function getSelectedTone() {
   const checked = document.querySelector('input[name="tone"]:checked');
@@ -25,6 +30,11 @@ function setSelectedTone(value) {
 // ─── ON LOAD: POPULATE FORM WITH SAVED SETTINGS ───────────────────────────
 
 getSettings().then((settings) => {
+  lengthThreshold.value=settings.lengthThreshold;
+  detectLengthEl.checked  = settings.detectLength !==false;
+
+  enabledEl.checked       = settings.enabled !== false;
+
   providerEl.value    = settings.provider;
   apiKeyEl.value      = settings.apiKey;
   ollamaUrlEl.value   = settings.ollamaUrl;
@@ -67,7 +77,13 @@ saveBtn.addEventListener("click", async () => {
     model:         modelEl.value,
     threshold:     parseInt(thresholdEl.value),
     summaryLength: summaryEl.value,
-    tone:          getSelectedTone(),   // ← add this
+    tone:          getSelectedTone(), 
+
+    enabled:       enabledEl.checked,
+
+    lengthThreshold:lengthThreshold.value,
+    detectLength:  detectLengthEl.checked,
+
   });
   showStatus("Settings saved.");
 });
